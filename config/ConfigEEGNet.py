@@ -1,4 +1,4 @@
-from model.eegnet_pt import EEGNet
+from eegnet.model.eegnet_pt import EEGNet
 
 
 class ConfigEEGNet:

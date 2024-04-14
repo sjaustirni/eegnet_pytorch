@@ -1,4 +1,3 @@
-from config import ConfigDataset
-from config import ConfigHyperparams
-from config import ConfigCheckpoints
-from config import ConfigEEGNet
+from eegnet.config.ConfigHyperparams import ConfigHyperparams
+from eegnet.config.ConfigCheckpoints import ConfigCheckpoints
+from eegnet.config.ConfigEEGNet import ConfigEEGNet
