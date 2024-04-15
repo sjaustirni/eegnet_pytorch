@@ -44,14 +44,12 @@ class DearEarDataset(Dataset):
             class_epochs = data.item()['MRCP'][c][self.scenario][:, self.channels, :]
             epochs.append(class_epochs)
         self.data = np.concatenate(epochs, axis=0)
-        self.labels = np.concatenate([np.ones(len(data.item()['MRCP'][c][self.scenario])) * i for i, c in enumerate(self.classes)])
-        
-        print("Data shape: ", self.data.shape)
-        print("Labels shape: ", self.labels.shape)
-        
+        self.labels = np.concatenate(
+            [np.ones(len(data.item()['MRCP'][c][self.scenario])) * i for i, c in enumerate(self.classes)])
     
     def __len__(self):
         return len(self.data)
     
-    def __getitem__(self, idx):
-        return self.data[idx], self.labels[idx]
+    def __getitem__(self, idx) -> (torch.Tensor, torch.Tensor):
+        return torch.from_numpy(self.data[idx]).float(), torch.tensor(self.labels[idx]).long()
+        
