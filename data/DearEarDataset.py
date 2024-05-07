@@ -11,7 +11,7 @@ def _get_participant_epochs_file(data_dir, participant_id):
 
 
 class DearEarDataset(Dataset):
-    def __init__(self, data_dir: str, participant_id: int, classes: list = None, scenario: str = "REHAB",
+    def __init__(self, data_dir: str, participant_ids: [int], mode="train", classes: list = None, scenario: str = "REHAB",
                  channels: list = None):
         """
         Args:
@@ -34,7 +34,36 @@ class DearEarDataset(Dataset):
         
         self.data = []
         self.labels = []
-        self.load_data(_get_participant_epochs_file(data_dir, participant_id))
+    
+        for participant_id in participant_ids:
+            data, labels = self.load_data(_get_participant_epochs_file(data_dir, participant_id))
+            
+            # For training use all data
+            if mode == "train":
+                self.data.append(data)
+                self.labels.append(labels)
+                
+            # For fine-tuning use only first 50% of each class
+            elif mode == "finetune":
+                for c in self.classes:
+                    class_data = data[labels == self.classes.index(c)]
+                    class_labels = labels[labels == self.classes.index(c)]
+                    self.data.append(class_data[:len(class_data) // 2])
+                    self.labels.append(class_labels[:len(class_labels) // 2])
+            
+            # For evaluation use only second 50% of each class
+            elif mode == "eval":
+                for c in self.classes:
+                    class_data = data[labels == self.classes.index(c)]
+                    class_labels = labels[labels == self.classes.index(c)]
+                    self.data.append(class_data[len(class_data) // 2:])
+                    self.labels.append(class_labels[len(class_labels) // 2:])
+            
+            else:
+                raise ValueError("Invalid mode")
+            
+        self.data = np.concatenate(self.data, axis=0)
+        self.labels = np.concatenate(self.labels, axis=0)
     
     def load_data(self, file):
         # Load data
@@ -43,8 +72,8 @@ class DearEarDataset(Dataset):
         for c in self.classes:
             class_epochs = data.item()['MRCP'][c][self.scenario][:, self.channels, :]
             epochs.append(class_epochs)
-        self.data = np.concatenate(epochs, axis=0)
-        self.labels = np.concatenate(
+            
+        return np.concatenate(epochs, axis=0), np.concatenate(
             [np.ones(len(data.item()['MRCP'][c][self.scenario])) * i for i, c in enumerate(self.classes)])
     
     def __len__(self):
