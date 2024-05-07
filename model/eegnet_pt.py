@@ -93,6 +93,15 @@ class EEGNet(nn.Module):
         # print("fc", y2.shape)
         
         return y2
+    
+    def freeze(self):
+        for name, param in self.named_parameters():
+            if name not in ['fc.weight', 'fc.bias', 'conv3.weight', 'conv3.bias']:
+                param.requires_grad = False
+    
+    def unfreeze(self):
+        for param in self.parameters():
+            param.requires_grad = True
 
 
 '''
